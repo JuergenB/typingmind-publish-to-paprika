@@ -1,0 +1,180 @@
+{
+  "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
+  "id": "publish_to_paprika",
+  "title": "Publish to Paprika",
+  "iconURL": "https://www.paprikaapp.com/favicon.ico",
+  "authenticationType": "AUTH_TYPE_NONE",
+  "overviewMarkdown": "Publishes a finished recipe straight into Paprika Recipe Manager 3, optionally with a generated food-photography image.\n\nSet the **Service Token** setting to the `SERVICE_TOKEN` from the paprika-aware-chef deployment, and the **Service URL** to its base URL.\n\nRuns server-side, so it works from a phone with no local setup.",
+  "userSettings": [
+    {
+      "name": "serviceUrl",
+      "label": "Service URL",
+      "description": "Base URL of the paprika-aware-chef deployment, with no trailing slash. For example https://paprika-aware-chef.vercel.app",
+      "type": "text",
+      "required": true
+    },
+    {
+      "name": "serviceToken",
+      "label": "Service Token",
+      "description": "The SERVICE_TOKEN value from the deployment's environment.",
+      "type": "password",
+      "required": true
+    }
+  ],
+  "pluginFunctions": [
+    {
+      "id": "publish_recipe",
+      "name": "publish_recipe",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "b58be3de-d53c-4b53-9a0d-8b180de000ff",
+        "url": "{serviceUrl}/v1/recipes",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"name\": \"{name}\",\n  \"description\": \"{description}\",\n  \"servings\": \"{servings}\",\n  \"prep_time\": \"{prep_time}\",\n  \"cook_time\": \"{cook_time}\",\n  \"difficulty\": \"{difficulty}\",\n  \"ingredients\": \"{ingredients}\",\n  \"directions\": \"{directions}\",\n  \"notes\": \"{notes}\",\n  \"nutritional_info\": \"{nutritional_info}\",\n  \"source\": \"{source}\",\n  \"source_url\": \"{source_url}\",\n  \"categories\": {categories},\n  \"rating\": {rating},\n  \"generate_image\": {generate_image},\n  \"image_prompt\": \"{image_prompt}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "publish_recipe",
+        "description": "Publish a completed recipe to the user's Paprika Recipe Manager, optionally with a generated food-photography image. ONLY call this once the user has explicitly asked for the recipe to be published - 'publish it', 'send it to Paprika', or an equally plain yes. Finishing the recipe is NOT permission to publish it; the user develops recipes in conversation and decides when one is ready. Send the recipe as it stands after every revision agreed in the conversation, not the first draft. Do not print the recipe as markdown in the chat as well - publishing is the delivery.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "name",
+            "ingredients",
+            "directions"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "The recipe title."
+            },
+            "description": {
+              "type": "string",
+              "description": "One or two factual sentences saying what the dish is and what is in it. No flourish."
+            },
+            "servings": {
+              "type": "string",
+              "description": "Free text, e.g. '4' or '6 to 8'. Use the number the user asked for."
+            },
+            "prep_time": {
+              "type": "string",
+              "description": "Free text, e.g. '15 minutes'."
+            },
+            "cook_time": {
+              "type": "string",
+              "description": "Free text, e.g. '40 minutes'. Paprika computes the total itself, so do not send one."
+            },
+            "difficulty": {
+              "type": "string",
+              "enum": [
+                "Easy",
+                "Medium",
+                "Hard",
+                ""
+              ],
+              "description": "Leave empty if unsure."
+            },
+            "ingredients": {
+              "type": "string",
+              "description": "One ingredient per line, newline separated.\n\nGROUP BY COOKING STAGE, in the order the stages happen. Start each group with a heading line ending in a colon ('Sear the chicken:'), then a blank line before the next group. Paprika renders a line ending in a colon as a section heading, so the list reads in cooking order.\n\nWhen one ingredient is split across stages, list it in each stage at the amount that stage needs, and note the total on its first appearance: '1 tablespoon olive oil, of 2 tablespoons total'. Do NOT also list it as a separate total line - Paprika's grocery list adds the lines up, and a total line plus the per-stage lines would buy twice the oil.\n\nThe quantity MUST come first on every ingredient line ('400 grams tonnarelli', never 'tonnarelli, 400 grams') because that is what Paprika's portion scaling reads. NEVER begin a line with a bullet, dash, asterisk or number - it breaks Paprika's parser. Headings are the one exception to quantity-first, and they must end with a colon.\n\nFor metric alternatives write the imperial line, then a line containing only the word 'or', then the metric line."
+            },
+            "directions": {
+              "type": "string",
+              "description": "Grouped by phase. Put the phase name alone on a line in bold (**Sear the meat**), then the steps as prose paragraphs beneath it. Blank line between paragraphs and before each phase heading. No numbered steps, no bullets. Include exact temperatures, vessel sizes and sensory cues."
+            },
+            "notes": {
+              "type": "string",
+              "description": "Chef's tips, substitutions, make-ahead and storage instructions."
+            },
+            "nutritional_info": {
+              "type": "string",
+              "description": "Free text. Leave empty unless the user asked for it."
+            },
+            "source": {
+              "type": "string",
+              "description": "Where the recipe came from. Use 'Paprika Aware Chef' for recipes you developed."
+            },
+            "source_url": {
+              "type": "string",
+              "description": "URL of the original, when adapting a published recipe."
+            },
+            "categories": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Category names, not IDs, e.g. ['Pasta', 'Italian']. The service creates any that do not exist yet."
+            },
+            "rating": {
+              "type": "integer",
+              "description": "0 to 5. Leave at 0 for a new recipe the user has not cooked yet."
+            },
+            "generate_image": {
+              "type": "boolean",
+              "description": "Whether to generate a food-photography image. Set this from the user's answer, never assume."
+            },
+            "image_prompt": {
+              "type": "string",
+              "description": "How the finished plated dish should look: ingredients visible, plating, natural window light, shallow depth of field, restaurant presentation. Photographic only - never illustrated or stylized."
+            },
+            "image_url": {
+              "type": "string",
+              "description": "The URL of the image the user chose from preview_recipe_images. Pass it back exactly as given. When this is set the chosen image is used as-is and generate_image is ignored, so the picture published is the one they actually picked."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "preview_recipe_images",
+      "name": "preview_recipe_images",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "e5841840-0ed3-48f0-9d48-c0ef226e3073",
+        "url": "{serviceUrl}/v1/recipe-images",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"name\": \"{name}\",\n  \"description\": \"{description}\",\n  \"image_prompt\": \"{image_prompt}\",\n  \"count\": {count}\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "preview_recipe_images",
+        "description": "Generate several food-photography options for a recipe and get back their URLs, so the user can see them and choose one BEFORE the recipe is published. Call this when the user has asked to publish and said they want a photo. Show every returned URL to the user as a markdown image, numbered, and ask which one they want. Then call publish_recipe passing their choice as image_url. Takes about 25 seconds, so tell the user the photos are being drawn. The links expire after roughly an hour, so do not offer them again in a later conversation.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "The recipe title."
+            },
+            "description": {
+              "type": "string",
+              "description": "One or two sentences saying what the dish is, used to build the image prompt when image_prompt is empty."
+            },
+            "image_prompt": {
+              "type": "string",
+              "description": "How the finished plated dish should look: ingredients visible, plating, natural window light, shallow depth of field, restaurant presentation. Photographic only - never illustrated or stylized. Leave empty to have one built from the name and description."
+            },
+            "count": {
+              "type": "integer",
+              "description": "How many options to generate, 1 to 4. Use 3 unless the user asks for a different number."
+            }
+          }
+        }
+      }
+    }
+  ],
+  "disabled": false
+}
