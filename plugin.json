@@ -1,8 +1,9 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
+  "emoji": "\ud83c\udf36",
   "title": "Publish to Paprika",
-  "iconURL": "https://www.paprikaapp.com/favicon.ico",
+  "iconURL": "https://raw.githubusercontent.com/JuergenB/typingmind-publish-to-paprika/main/icon.png",
   "authenticationType": "AUTH_TYPE_NONE",
   "overviewMarkdown": "Publishes a finished recipe straight into Paprika Recipe Manager 3, optionally with a generated food-photography image.\n\nSet the **Service Token** setting to the `SERVICE_TOKEN` from the paprika-aware-chef deployment, and the **Service URL** to its base URL.\n\nRuns server-side, so it works from a phone with no local setup.",
   "userSettings": [
