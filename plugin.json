@@ -12,12 +12,13 @@
       "label": "Service URL",
       "description": "Base URL of the paprika-aware-chef deployment, with no trailing slash. For example https://paprika-aware-chef.vercel.app",
       "type": "text",
-      "required": true
+      "required": true,
+      "defaultValue": "https://paprika-aware-chef.vercel.app"
     },
     {
       "name": "serviceToken",
       "label": "Service Token",
-      "description": "The SERVICE_TOKEN value from the deployment's environment.",
+      "description": "The SERVICE_TOKEN from the deployment's environment. This is the only setting you have to type. Re-importing the plugin creates a fresh copy with this empty, so it has to be pasted again after every import.",
       "type": "password",
       "required": true
     }
