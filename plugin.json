@@ -175,7 +175,7 @@
             },
             "count": {
               "type": "integer",
-              "description": "How many options to generate, 1 to 4. Use 3 unless asked otherwise."
+              "description": "How many options to generate, 1 to 4. Use 4 unless the user asks otherwise: roughly one frame in three still gets the cut or the thickness wrong, so a fourth is what makes it near-certain one of them is right."
             }
           }
         }
