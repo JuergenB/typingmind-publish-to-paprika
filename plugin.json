@@ -143,34 +143,39 @@
         "method": "POST",
         "hasBody": true,
         "hasHeaders": true,
-        "requestBody": "{\n  \"name\": \"{name}\",\n  \"description\": \"{description}\",\n  \"image_prompt\": \"{image_prompt}\",\n  \"count\": {count}\n}",
+        "requestBody": "{\n  \"name\": \"{name}\",\n  \"subject\": \"{subject}\",\n  \"surface\": \"{surface}\",\n  \"serving\": \"{serving}\",\n  \"count\": {count}\n}",
         "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
         "requestBodyFormat": "json"
       },
       "openaiSpec": {
         "name": "preview_recipe_images",
-        "description": "Generate several food-photography options for a recipe and get back their URLs, so the user can see them and choose one BEFORE the recipe is published. Call this when the user has asked to publish and said they want a photo. Show every returned URL to the user as a markdown image, numbered, and ask which one they want. Then call publish_recipe passing their choice as image_url. Takes about 25 seconds, so tell the user the photos are being drawn. The links expire after roughly an hour, so do not offer them again in a later conversation.",
+        "description": "Generate several food-photography options for a recipe and return their URLs, so the user can see them and choose one BEFORE the recipe is published. Call this when the user has asked to publish and said they want a photo.\n\nDescribe the FOOD only, in the three fields subject, surface and serving. Every word about photography - camera, lens, light, plate, grain - is supplied by the service and is the same on every recipe, so do not write any of it here.\n\nWrite those fields from the recipe you just developed, NOT from the dish's name. A title says 'charred cabbage'; the camera needs to know it is a two-inch wedge rather than half a head. Give real dimensions, how many pieces, how each was cut, and what the cut surface reveals.\n\nState what things ARE. Never write an exclusion such as 'not bok choy' or 'no sauce' - image models have no negation and weight up whatever you name, so an exclusion summons the thing you meant to avoid. Exclusions are stripped before the prompt is sent.\n\nTakes about 20 seconds, so tell the user the photos are being drawn. Show every returned URL as a numbered markdown image, ask which they want, then call publish_recipe passing their choice as image_url. The links expire after about an hour.",
         "parameters": {
           "type": "object",
           "required": [
-            "name"
+            "name",
+            "subject"
           ],
           "properties": {
             "name": {
               "type": "string",
               "description": "The recipe title."
             },
-            "description": {
+            "subject": {
               "type": "string",
-              "description": "One or two sentences saying what the dish is, used to build the image prompt when image_prompt is empty."
+              "description": "THE OBJECT ON THE PLATE, physically. The single most important field. Name the principal component, how many pieces, how it was cut or formed, and its actual size with a real measurement. Then say what the cut or broken surface reveals - layers, grain, crumb, filling. Example: 'One wedge of green cabbage, a triangular slab two inches thick at its wide leafy edge tapering to a point, about five inches long, one of four cut through the core from half a head. The flat cut face shows long pale layers fanning from a firm creamy core strip along the bottom edge.' A reader who has never seen the dish should be able to draw it from this."
             },
-            "image_prompt": {
+            "surface": {
               "type": "string",
-              "description": "How the finished plated dish should look: ingredients visible, plating, natural window light, shallow depth of field, restaurant presentation. Photographic only - never illustrated or stylized. Leave empty to have one built from the name and description."
+              "description": "WHAT THE COOKING DID TO THE SURFACE. Be specific about the evidence the method leaves, because that is what makes a picture read as food rather than as a render. Char is uneven blistering and near-black patches with pale untouched food between, not an even brown coat. A sear is a dry crust. Steaming leaves things moist and slumped. A reduced glaze is glossy and clings; a thin sauce pools flat. Example: 'The cut face is blistered and blackened in uneven patches from a dry cast-iron pan, pale green and untouched between the scorch marks, edges dried and papery.'"
+            },
+            "serving": {
+              "type": "string",
+              "description": "HOW IT IS SERVED: the vessel, the sauce and where it sits, the garnish and how much. Use the quantities the recipe actually calls for - a teaspoon of sesame seeds is a scatter, not a blanket. Example: 'On a shallow stoneware plate, a thin dark soy-yuzu glaze pooled around the base, a scatter of thinly sliced scallion and toasted sesame.'"
             },
             "count": {
               "type": "integer",
-              "description": "How many options to generate, 1 to 4. Use 3 unless the user asks for a different number."
+              "description": "How many options to generate, 1 to 4. Use 3 unless asked otherwise."
             }
           }
         }
