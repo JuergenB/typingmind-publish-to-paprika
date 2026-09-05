@@ -1,6 +1,8 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
+  "version": 1,
+  "githubURL": "https://github.com/JuergenB/typingmind-publish-to-paprika",
   "emoji": "\ud83c\udf36",
   "title": "Paprika Recipes",
   "iconURL": "https://raw.githubusercontent.com/JuergenB/typingmind-publish-to-paprika/main/icon.png",
