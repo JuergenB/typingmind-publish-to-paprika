@@ -25,6 +25,135 @@
   ],
   "pluginFunctions": [
     {
+      "id": "get_recipe",
+      "name": "get_recipe",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "36cfac50-65e0-4556-b697-9c1429a512b1",
+        "url": "{serviceUrl}/v1/recipes/get",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"uid\": \"{uid}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "get_recipe",
+        "description": "Read one recipe from Paprika in full, by uid. find_recipes returns only names and the lines that matched; this returns the whole thing.\n\nUse it when the user wants to revise something they have cooked, or to look at a recipe the search turned up. Keep the hash it returns and pass it back to update_recipe.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "uid"
+          ],
+          "properties": {
+            "uid": {
+              "type": "string",
+              "description": "The recipe's uid, exactly as find_recipes returned it. Never a name - names are not unique and this is how you address the right recipe."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "update_recipe",
+      "name": "update_recipe",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "125903fd-5a23-4c14-aa1b-7dcbd5684904",
+        "url": "{serviceUrl}/v1/recipes/update",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"uid\": \"{uid}\",\n  \"expected_hash\": \"{expected_hash}\",\n  \"name\": \"{name}\",\n  \"description\": \"{description}\",\n  \"servings\": \"{servings}\",\n  \"prep_time\": \"{prep_time}\",\n  \"cook_time\": \"{cook_time}\",\n  \"difficulty\": \"{difficulty}\",\n  \"ingredients\": \"{ingredients}\",\n  \"directions\": \"{directions}\",\n  \"notes\": \"{notes}\",\n  \"nutritional_info\": \"{nutritional_info}\",\n  \"source\": \"{source}\",\n  \"source_url\": \"{source_url}\",\n  \"categories\": \"{categories}\",\n  \"rating\": \"{rating}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "update_recipe",
+        "description": "Revise a recipe ALREADY in Paprika. This overwrites it and there is no undo - Paprika keeps no version history.\n\nONLY call this once the user has explicitly agreed to the change. Read the recipe with get_recipe first, talk the revision through, and confirm the recipe's title back to them before writing. A wrong uid overwrites the wrong recipe with no way back.\n\nOnly the fields you send are changed; anything you leave out keeps its current value, which is what protects the photo and the categories. Send the COMPLETE new text for any field you change - it replaces rather than merges.\n\nSay in notes what changed and why, so the recipe does not silently differ from the one they cooked.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "uid"
+          ],
+          "properties": {
+            "uid": {
+              "type": "string",
+              "description": "The recipe's uid, from find_recipes or get_recipe."
+            },
+            "expected_hash": {
+              "type": "string",
+              "description": "The hash get_recipe returned. Send it back. If the recipe has changed elsewhere since you read it, the update is refused instead of quietly overwriting the other change."
+            },
+            "name": {
+              "type": "string",
+              "description": "A new title, if it should change."
+            },
+            "description": {
+              "type": "string",
+              "description": "\n\nCRITICAL, or the call fails before it is sent: write every line break as the two characters backslash and n. Do NOT press Enter inside this field. The plugin host pastes your text straight into a JSON body without escaping it, so one real line break makes the whole request unparseable."
+            },
+            "servings": {
+              "type": "string",
+              "description": ""
+            },
+            "prep_time": {
+              "type": "string",
+              "description": ""
+            },
+            "cook_time": {
+              "type": "string",
+              "description": ""
+            },
+            "difficulty": {
+              "type": "string",
+              "description": ""
+            },
+            "ingredients": {
+              "type": "string",
+              "description": "The COMPLETE revised ingredients, not just the changed lines - this replaces the field. Same rules as publishing: grouped by cooking stage under headings ending in a colon, one ingredient per line, quantity first, no bullet characters.\n\nCRITICAL, or the call fails before it is sent: write every line break as the two characters backslash and n. Do NOT press Enter inside this field. The plugin host pastes your text straight into a JSON body without escaping it, so one real line break makes the whole request unparseable."
+            },
+            "directions": {
+              "type": "string",
+              "description": "The COMPLETE revised directions, not just the changed part.\n\nCRITICAL, or the call fails before it is sent: write every line break as the two characters backslash and n. Do NOT press Enter inside this field. The plugin host pastes your text straight into a JSON body without escaping it, so one real line break makes the whole request unparseable."
+            },
+            "notes": {
+              "type": "string",
+              "description": "The COMPLETE revised notes. When you revise a recipe after the user has cooked it, say here what changed and why - 'halved the sugar, it was too sweet at the original quantity'. A recipe that silently differs from the one they cooked is worse than no revision.\n\nCRITICAL, or the call fails before it is sent: write every line break as the two characters backslash and n. Do NOT press Enter inside this field. The plugin host pastes your text straight into a JSON body without escaping it, so one real line break makes the whole request unparseable."
+            },
+            "nutritional_info": {
+              "type": "string",
+              "description": "\n\nCRITICAL, or the call fails before it is sent: write every line break as the two characters backslash and n. Do NOT press Enter inside this field. The plugin host pastes your text straight into a JSON body without escaping it, so one real line break makes the whole request unparseable."
+            },
+            "source": {
+              "type": "string",
+              "description": ""
+            },
+            "source_url": {
+              "type": "string",
+              "description": ""
+            },
+            "categories": {
+              "type": "array",
+              "description": "Replacement category NAMES. Left out, the existing ones are kept.",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rating": {
+              "type": "integer",
+              "description": "0 to 5. Left out, the existing rating is kept."
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "find_recipes",
       "name": "find_recipes",
       "implementationType": "http",
