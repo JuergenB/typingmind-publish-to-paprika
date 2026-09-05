@@ -9,7 +9,7 @@ device, including a phone with nothing installed.
 
 | Function | What it does |
 |---|---|
-| `find_recipes` | Searches the recipes you already have - across names, ingredients, directions, notes and source - and filters by rating, favourite, category or source |
+| `find_recipes` | Searches the recipes you already have - across names, ingredients, directions, notes and source - and filters by rating, favourite, category or source. A search of several words that matches nothing exactly comes back with near misses rather than nothing |
 | `get_recipe` | Reads one recipe in full, by uid |
 | `update_recipe` | Revises a recipe you already have. **Overwrites — there is no undo** |
 | `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |
