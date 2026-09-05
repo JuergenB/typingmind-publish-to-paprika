@@ -1,13 +1,13 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
-  "version": 6,
+  "version": 7,
   "githubURL": "https://github.com/JuergenB/typingmind-publish-to-paprika",
   "emoji": "\ud83c\udf36",
   "title": "Paprika Recipes",
   "iconURL": "https://raw.githubusercontent.com/JuergenB/typingmind-publish-to-paprika/main/icon.png",
   "authenticationType": "AUTH_TYPE_NONE",
-  "overviewMarkdown": "Gives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n\nIt reads, adds and revises recipes. It does not delete anything, and it does not touch meal plans, the grocery list or the pantry.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.",
+  "overviewMarkdown": "Gives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n| `get_groceries` | Reads your shopping list, grouped by aisle |\n| `add_groceries` | Adds items to the shopping list. Refuses anything already on it and says so |\n| `check_off_groceries` | Ticks items off as bought |\n\nIt reads, adds and revises recipes, and it reads and adds to the shopping list. It does not delete anything, and it does not touch meal plans or the pantry.\n\nItems added to the shopping list are filed into an aisle by **our guess**, because Paprika does not assign one itself. A wrong guess is easy to move in the app.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.",
   "userSettings": [
     {
       "name": "serviceUrl",
@@ -353,6 +353,99 @@
             "count": {
               "type": "integer",
               "description": "How many options to generate, 1 to 4. Use 4 unless the user asks otherwise: roughly one frame in three still gets the cut or the thickness wrong, so a fourth is what makes it near-certain one of them is right."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get_groceries",
+      "name": "get_groceries",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "ee10a994-04c9-4ced-a807-ece1e64810ac",
+        "url": "{serviceUrl}/v1/groceries/list",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"include_purchased\": \"{include_purchased}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "get_groceries",
+        "description": "Read the user's Paprika shopping list. Read-only.\n\nUse it for 'what's on our shopping list', 'do we need anything', and before adding something when knowing what is already there would help.\n\nReturns what is still to buy, grouped by aisle in by_aisle. **Read it out by aisle, not as one long list** - that is the order the items will be walked past in the shop. Items we could not place sit under 'Unsorted'.",
+        "parameters": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "include_purchased": {
+              "type": "boolean",
+              "description": "Whether to include items already ticked off. Leave this false: the question 'what is on the shopping list' means what is still to buy."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "add_groceries",
+      "name": "add_groceries",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "5c45cfd9-2476-4803-9396-297dcfc71692",
+        "url": "{serviceUrl}/v1/groceries",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"items\": \"{items}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "add_groceries",
+        "description": "Add items to the user's Paprika shopping list.\n\nSend everything they named in ONE call - 'add oat milk, oats and bananas' is one sentence and should be one write.\n\n**You do not need to check for duplicates first.** The service refuses anything already waiting to be bought and tells you which in already_there. Read the returned message back and say what was skipped, rather than claiming it was all added.\n\nEach item is filed into an aisle by OUR GUESS, not by Paprika - the server files nothing itself. The aisles field says which. Mention them only when the user would care, and treat a wrong one as correctable in the app.",
+        "parameters": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "items": {
+              "type": "string",
+              "description": "What to add, as a COMMA-SEPARATED STRING: 'oat milk, oats, bananas'. Not a JSON array - the plugin pastes your value inside quotes in the request body, so an array's own quotes break it and the call fails before it is sent.\n\nSend everything the user named in ONE call. 'Add oat milk, oats and bananas' is one sentence and should be one write.\n\nWrite the plain shopping name of the thing - 'oat milk', not '1 litre of oat milk, organic'. Quantities are not tracked, and a quantity in the name is what stops the list recognising you already have it."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "check_off_groceries",
+      "name": "check_off_groceries",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "4f966d41-57fa-4369-b418-50879200acee",
+        "url": "{serviceUrl}/v1/groceries/check-off",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"items\": \"{items}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "check_off_groceries",
+        "description": "Tick items off the user's Paprika shopping list, as bought.\n\nMatching ignores case and treats singular and plural alike, so 'bananas' finds 'banana'. Anything that was not on the list comes back in not_found - say so rather than implying everything was ticked off.",
+        "parameters": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "items": {
+              "type": "string",
+              "description": "What to tick off, as a COMMA-SEPARATED STRING: 'oat milk, bananas'. Not a JSON array, for the same reason as add_groceries. Matching ignores case and treats singular and plural alike."
             }
           }
         }
