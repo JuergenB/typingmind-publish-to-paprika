@@ -1,8 +1,9 @@
 # Paprika Recipes — a TypingMind plugin
 
-**Plugin version 8.** TypingMind shows no version number of its own, and it
-freezes this page at install time - so whatever number this line names is the
-version you actually have installed. If it does not say 8, the copy is stale.
+**Version 9.** The plugin's title carries the version too, so you can see it in
+the plugin list without opening anything. TypingMind shows no version of its own
+and freezes this page at install time, so whatever number these name is the
+version you actually have installed.
 
 Gives a chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/).
 It can look through the recipes you already have, read one, revise it after
