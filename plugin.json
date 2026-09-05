@@ -1,7 +1,7 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
-  "version": 3,
+  "version": 4,
   "githubURL": "https://github.com/JuergenB/typingmind-publish-to-paprika",
   "emoji": "\ud83c\udf36",
   "title": "Paprika Recipes",
@@ -167,22 +167,36 @@
         "method": "POST",
         "hasBody": true,
         "hasHeaders": true,
-        "requestBody": "{\n  \"ingredient\": \"{ingredient}\",\n  \"limit\": \"{limit}\"\n}",
+        "requestBody": "{\n  \"ingredient\": \"{ingredient}\",\n  \"min_rating\": \"{min_rating}\",\n  \"favourites_only\": \"{favourites_only}\",\n  \"category\": \"{category}\",\n  \"source\": \"{source}\",\n  \"limit\": \"{limit}\"\n}",
         "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
         "requestBodyFormat": "json"
       },
       "openaiSpec": {
         "name": "find_recipes",
-        "description": "Search the recipes ALREADY in the user's Paprika for ones that use a given ingredient. Read-only: it cannot change or delete anything.\n\nCall this whenever the user asks what they already have - 'do I have anything with cabbage', 'have I made this before', 'what can I do with the yuzu' - and before developing a new recipe when knowing their collection would make your answer better, for instance to avoid proposing a near duplicate of something they already cook.\n\nReturns the recipe names and the ingredient lines that matched. Tell the user the names; quote the matching lines only where they help. You cannot open a recipe's full text - if they want that, they open it in Paprika.\n\nFast - well under a second - because the collection is indexed. Very occasionally the index has to be rebuilt and the call takes about a minute; if that happens, say the search is running rather than assuming it failed.",
+        "description": "Search the recipes ALREADY in the user's Paprika. Read-only.\n\nMatches across the recipe's NAME, INGREDIENTS, DIRECTIONS, NOTES, DESCRIPTION and SOURCE - so 'wok' finds recipes whose method says so, and 'nytimes' or 'zimmern' finds ones from that writer. Also filters by rating, favourite, category and source, and the search term may be left empty when you are only filtering: that is how you answer 'what are my favourites' or 'what have I rated five'.\n\nCall it whenever the user asks what they already have, and before proposing a new recipe that might duplicate one.\n\n**Never say the user has nothing until you have tried a distinctive term.** Matching is on whole words, so 'peppercorn' does not find 'black pepper' and a cuisine name finds nothing at all - search the ingredient a recipe would certainly name, like 'doubanjiang' rather than 'Chinese'. If your searches cannot answer the question, say that, rather than reporting the collection is empty of it.\n\nEach result says in matched_in which field the hit came from, and carries the rating, whether it is a favourite, its source and its categories.",
         "parameters": {
           "type": "object",
-          "required": [
-            "ingredient"
-          ],
+          "required": [],
           "properties": {
             "ingredient": {
               "type": "string",
-              "description": "The ingredient to look for, e.g. 'cabbage', 'chicken thighs', 'yuzu'. One ingredient at a time. Matching is on whole words and is not case-sensitive, and it searches the ingredient lines of every recipe in the account as well as the titles."
+              "description": "What to look for - an ingredient, a technique, a cuisine, a source. It is matched against the recipe's NAME, INGREDIENTS, DIRECTIONS, NOTES, DESCRIPTION and SOURCE, so 'wok' finds recipes whose method says so and 'nytimes' finds ones from that site.\n\nMatching is on whole words and is not case-sensitive, so 'egg' does not match 'eggplant'. A multi-word term matches as a phrase. Use the plain words the recipe would actually contain: search 'black pepper', not 'peppercorn', and if the first term finds nothing try a distinctive ingredient rather than a category - 'doubanjiang' beats 'Chinese'.\n\nMay be left empty when you are filtering by rating, favourite, category or source instead."
+            },
+            "min_rating": {
+              "type": "integer",
+              "description": "Only recipes rated this or higher. Use 5 with an empty ingredient to answer 'what are my best recipes'."
+            },
+            "favourites_only": {
+              "type": "boolean",
+              "description": "Only recipes the user has starred in Paprika. This, rather than the rating, is what 'my favourites' literally means in the app."
+            },
+            "category": {
+              "type": "string",
+              "description": "Only recipes in this category, e.g. 'baking'."
+            },
+            "source": {
+              "type": "string",
+              "description": "Only recipes whose source contains this, e.g. 'nytimes' or 'zimmern'."
             },
             "limit": {
               "type": "integer",
