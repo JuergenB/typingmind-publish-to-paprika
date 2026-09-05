@@ -25,6 +25,43 @@
   ],
   "pluginFunctions": [
     {
+      "id": "find_recipes",
+      "name": "find_recipes",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "910bc9db-cbad-43ad-a494-8d8130ab7ed0",
+        "url": "{serviceUrl}/v1/recipes/search",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"ingredient\": \"{ingredient}\",\n  \"limit\": \"{limit}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "find_recipes",
+        "description": "Search the recipes ALREADY in the user's Paprika for ones that use a given ingredient. Read-only: it cannot change or delete anything.\n\nCall this whenever the user asks what they already have - 'do I have anything with cabbage', 'have I made this before', 'what can I do with the yuzu' - and before developing a new recipe when knowing their collection would make your answer better, for instance to avoid proposing a near duplicate of something they already cook.\n\nReturns the recipe names and the ingredient lines that matched. Tell the user the names; quote the matching lines only where they help. You cannot open a recipe's full text - if they want that, they open it in Paprika.\n\nThe very first call after a deploy builds an index of the whole collection and can take up to a minute; every call after that is instant.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "ingredient"
+          ],
+          "properties": {
+            "ingredient": {
+              "type": "string",
+              "description": "The ingredient to look for, e.g. 'cabbage', 'chicken thighs', 'yuzu'. One ingredient at a time. Matching is on whole words and is not case-sensitive, and it searches the ingredient lines of every recipe in the account as well as the titles."
+            },
+            "limit": {
+              "type": "integer",
+              "description": "Most recipes to return. 20 is usually plenty."
+            }
+          }
+        }
+      }
+    },
+    {
       "id": "publish_recipe",
       "name": "publish_recipe",
       "implementationType": "http",
