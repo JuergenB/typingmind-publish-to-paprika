@@ -2,8 +2,9 @@
 
 Gives a chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/).
 It can look through the recipes you already have, read one, revise it after
-you have cooked it, and publish a new one with a photo you choose — from any
-device, including a phone with nothing installed.
+you have cooked it, publish a new one with a photo you choose, and read and add
+to your shopping list — from any device, including a phone with nothing
+installed.
 
 ## What it can do
 
@@ -14,9 +15,17 @@ device, including a phone with nothing installed.
 | `update_recipe` | Revises a recipe you already have. **Overwrites — there is no undo** |
 | `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |
 | `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |
+| `get_groceries` | Reads your shopping list, grouped by aisle, which is the order you walk a shop in |
+| `add_groceries` | Adds items to the shopping list. Anything already waiting to be bought is refused and named, so the list does not fill with near-duplicates |
+| `check_off_groceries` | Ticks items off as bought |
 
-It reads, adds and revises recipes. It does not delete anything, and it does
-not touch meal plans, the grocery list or the pantry.
+It reads, adds and revises recipes, and reads and adds to the shopping list.
+It does not delete anything, and it does not touch meal plans or the pantry.
+
+Items added to the shopping list are filed into an aisle by **the plugin's
+guess**, because Paprika does not assign one itself. Something it cannot
+place is left unsorted rather than filed wrongly, and any guess is easy to
+move in the app.
 
 ## Installing
 
