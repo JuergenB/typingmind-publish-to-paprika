@@ -1,13 +1,13 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
-  "version": 9,
+  "version": 10,
   "githubURL": "https://github.com/JuergenB/typingmind-publish-to-paprika",
-  "emoji": "\ud83c\udf36",
-  "title": "Paprika Recipes v9",
+  "emoji": "🌶",
+  "title": "Paprika Recipes v10",
   "iconURL": "https://raw.githubusercontent.com/JuergenB/typingmind-publish-to-paprika/main/icon.png",
   "authenticationType": "AUTH_TYPE_NONE",
-  "overviewMarkdown": "**Version 9.** The title and this line both name the installed version - TypingMind shows none of its own, and freezes this page at install time.\n\nGives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n| `get_groceries` | Reads your shopping list, grouped by aisle |\n| `add_groceries` | Adds items to the shopping list. Refuses anything already on it and says so |\n| `check_off_groceries` | Ticks items off as bought |\n\nIt reads, adds and revises recipes, and it reads and adds to the shopping list. It does not delete anything, and it does not touch meal plans or the pantry.\n\nItems added to the shopping list are filed into an aisle by **our guess**, because Paprika does not assign one itself. A wrong guess is easy to move in the app.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.",
+  "overviewMarkdown": "**Version 10.** The title and this line both name the installed version - TypingMind shows none of its own, and freezes this page at install time.\n\nGives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n| `get_groceries` | Reads your shopping list, grouped by aisle |\n| `add_groceries` | Adds items to the shopping list. Refuses anything already on it and says so |\n| `check_off_groceries` | Ticks items off as bought |\n| `attach_photo` | Puts a photograph you attach to the chat onto a recipe you already have. **Replaces the current picture - there is no undo** |\n\nIt reads, adds and revises recipes, puts your own photographs on them, and reads and adds to the shopping list. It does not delete anything, and it does not touch meal plans or the pantry.\n\nItems added to the shopping list are filed into an aisle by **our guess**, because Paprika does not assign one itself. A wrong guess is easy to move in the app.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.\n\n`attach_photo` is the one exception, and it cannot be otherwise. TypingMind hands a message's attachments to JavaScript functions only, so that one runs in your browser and needs the token there to upload the picture. Every other function still runs on the server.",
   "userSettings": [
     {
       "name": "serviceUrl",
@@ -450,7 +450,33 @@
           }
         }
       }
+    },
+    {
+      "id": "attach_photo",
+      "name": "attach_photo",
+      "implementationType": "javascript",
+      "outputType": "respond_to_ai",
+      "code": "async function attach_photo(params, userSettings, resources) {\n  // The ONLY reason this function is JavaScript rather than an HTTP Action\n  // like every other tool in this plugin: TypingMind hands a message's\n  // attachments to JavaScript functions and to nothing else. An HTTP Action\n  // cannot see an attached photograph at all.\n  const MAX_EDGE = 1600;\n\n  const images = (resources?.userMessage?.attachments || []).filter((a) =>\n    a.type?.startsWith('image/'),\n  );\n\n  if (!images.length) {\n    return {\n      ok: false,\n      message:\n        'No photograph is attached to that message. Ask the user to attach the ' +\n        'picture to the message naming the recipe, then call this again.',\n    };\n  }\n\n  // If several came at once, the last one is the one just taken.\n  const chosen = images[images.length - 1];\n\n  const asDataURL = (blob) =>\n    new Promise((resolve, reject) => {\n      const reader = new FileReader();\n      reader.onload = () => resolve(reader.result);\n      reader.onerror = reject;\n      reader.readAsDataURL(blob);\n    });\n\n  // Shrink before sending. A phone photograph is several megabytes, the\n  // service resizes it again anyway, and re-encoding through a canvas is also\n  // what gets an iPhone HEIC through - the browser decodes it and hands back\n  // a JPEG. If any of that fails, the original bytes go instead and the\n  // service has its own go.\n  const shrink = async (blob) => {\n    try {\n      const bitmap = await createImageBitmap(blob);\n      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));\n      const width = Math.round(bitmap.width * scale);\n      const height = Math.round(bitmap.height * scale);\n\n      if (typeof OffscreenCanvas !== 'undefined') {\n        const canvas = new OffscreenCanvas(width, height);\n        canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n        const out = await canvas.convertToBlob({\n          type: 'image/jpeg',\n          quality: 0.85,\n        });\n        return await asDataURL(out);\n      }\n\n      const canvas = document.createElement('canvas');\n      canvas.width = width;\n      canvas.height = height;\n      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n      return canvas.toDataURL('image/jpeg', 0.85);\n    } catch (e) {\n      return null;\n    }\n  };\n\n  let encoded;\n  try {\n    const blob = await fetch(chosen.url).then((r) => r.blob());\n    encoded = (await shrink(blob)) || (await asDataURL(blob));\n  } catch (e) {\n    return {\n      ok: false,\n      message:\n        'The attached photograph could not be read in the browser, so nothing ' +\n        'was changed: ' + e.message,\n    };\n  }\n\n  const response = await fetch(\n    userSettings.serviceUrl.replace(/\\/+$/, '') + '/v1/recipes/photo',\n    {\n      method: 'POST',\n      headers: {\n        'Content-Type': 'application/json',\n        Authorization: 'Bearer ' + userSettings.serviceToken,\n      },\n      body: JSON.stringify({ uid: params.uid, image_base64: encoded }),\n    },\n  );\n\n  if (!response.ok) {\n    return {\n      ok: false,\n      message:\n        'The service refused the photograph (HTTP ' + response.status + '): ' +\n        (await response.text()),\n    };\n  }\n\n  return await response.json();\n}\n",
+      "openaiSpec": {
+        "name": "attach_photo",
+        "description": "Puts a photograph the user attached to their message onto a recipe that is already in Paprika, replacing whatever picture it has now.\n\nUse it when the user attaches a photo of something they have cooked and wants it on the recipe. Find the recipe with find_recipes first and pass the uid it returns.\n\nYou do NOT need to be able to see the picture. The plugin reads the attachment itself and sends it straight to the service, so this works whether or not you can look at images.\n\nThe photograph must be attached to the message that asks for this. If it was attached earlier in the conversation, ask the user to send it again with the request.\n\nThis OVERWRITES the recipe's current picture and there is no way back to the old one, so be sure of the recipe before calling it.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "uid"
+          ],
+          "properties": {
+            "uid": {
+              "type": "string",
+              "description": "The recipe's uid, exactly as find_recipes or get_recipe returned it. Never a name - names are not unique and this is how the right recipe is addressed."
+            }
+          }
+        }
+      }
     }
   ],
-  "disabled": false
+  "disabled": false,
+  "permissions": [
+    "read_user_message"
+  ]
 }
