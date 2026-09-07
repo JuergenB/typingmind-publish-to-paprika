@@ -1,14 +1,14 @@
 # Paprika Recipes — a TypingMind plugin
 
-**Version 9.** The plugin's title carries the version too, so you can see it in
+**Version 10.** The plugin's title carries the version too, so you can see it in
 the plugin list without opening anything. TypingMind shows no version of its own
 and freezes this page at install time, so whatever number these name is the
 version you actually have installed.
 
 Gives a chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/).
 It can look through the recipes you already have, read one, revise it after
-you have cooked it, publish a new one with a photo you choose, and read and add
-to your shopping list — from any device, including a phone with nothing
+you have cooked it, publish a new one with a photo you choose, put your own
+photographs onto recipes you have cooked, and read and add to your shopping list — from any device, including a phone with nothing
 installed.
 
 ## What it can do
@@ -23,8 +23,10 @@ installed.
 | `get_groceries` | Reads your shopping list, grouped by aisle, which is the order you walk a shop in |
 | `add_groceries` | Adds items to the shopping list. Anything already waiting to be bought is refused and named, so the list does not fill with near-duplicates |
 | `check_off_groceries` | Ticks items off as bought |
+| `attach_photo` | Puts a photograph you attach to the chat onto a recipe you already have. **Replaces the picture it has now - there is no way back to the old one** |
 
-It reads, adds and revises recipes, and reads and adds to the shopping list.
+It reads, adds and revises recipes, puts your own photographs on them, and
+reads and adds to the shopping list.
 It does not delete anything, and it does not touch meal plans or the pantry.
 
 Items added to the shopping list are filed into an aisle by **the plugin's
@@ -50,6 +52,32 @@ Then open the plugin's settings:
 Leave the plugin running **server-side**, which is the default. That is what
 lets it work from a phone with no local setup, and what keeps the token off
 your devices.
+
+`attach_photo` is the one exception, and it cannot be otherwise - see below.
+
+## Putting your own photograph on a recipe
+
+Attach the picture to the message that asks for it, and say which recipe:
+
+> *"put this on the pork belly recipe"*
+
+Then the plugin finds the recipe, reads the attached image, shrinks it in your
+browser and uploads it. **The picture never passes through the conversation**,
+so this works even with a model that cannot see images at all - the model only
+ever handles the recipe's id.
+
+Two things follow from how TypingMind works, and both are worth knowing:
+
+- **The photo must be attached to the message making the request.** TypingMind
+  hands a plugin the attachments on the current message only. One sent earlier
+  in the conversation is out of reach, so send it again with the request.
+- **This one function runs in your browser rather than on the server**, because
+  TypingMind gives attachments to JavaScript functions and to nothing else. It
+  therefore needs the service token in the browser to upload. Every other
+  function still runs server-side with the token hidden.
+
+An iPhone photo in HEIC is fine. The browser re-encodes it to JPEG on the way
+through.
 
 ## What it needs
 
