@@ -1,13 +1,13 @@
 {
   "uuid": "b7f3a1d2-5c48-4e19-9a6b-0d3e8f2c5a71",
   "id": "publish_to_paprika",
-  "version": 10,
+  "version": 11,
   "githubURL": "https://github.com/JuergenB/typingmind-publish-to-paprika",
   "emoji": "🌶",
-  "title": "Paprika Recipes v10",
+  "title": "Paprika Recipes v11",
   "iconURL": "https://raw.githubusercontent.com/JuergenB/typingmind-publish-to-paprika/main/icon.png",
   "authenticationType": "AUTH_TYPE_NONE",
-  "overviewMarkdown": "**Version 10.** The title and this line both name the installed version - TypingMind shows none of its own, and freezes this page at install time.\n\nGives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n| `get_groceries` | Reads your shopping list, grouped by aisle |\n| `add_groceries` | Adds items to the shopping list. Refuses anything already on it and says so |\n| `check_off_groceries` | Ticks items off as bought |\n| `attach_photo` | Puts a photograph you attach to the chat onto a recipe you already have. **Replaces the current picture - there is no undo** |\n\nIt reads, adds and revises recipes, puts your own photographs on them, and reads and adds to the shopping list. It does not delete anything, and it does not touch meal plans or the pantry.\n\nItems added to the shopping list are filed into an aisle by **our guess**, because Paprika does not assign one itself. A wrong guess is easy to move in the app.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.\n\n`attach_photo` is the one exception, and it cannot be otherwise. TypingMind hands a message's attachments to JavaScript functions only, so that one runs in your browser and needs the token there to upload the picture. Every other function still runs on the server.",
+  "overviewMarkdown": "**Version 11.** The title and this line both name the installed version - TypingMind shows none of its own, and freezes this page at install time.\n\nGives the chef agent hands in [Paprika Recipe Manager 3](https://www.paprikaapp.com/): it can look through the recipes you already have, read one, revise it after you have cooked it, and publish a new one with a photo you choose. It also keeps your **kitchen equipment list** - the knives, pans and appliances it takes into account when it suggests a method.\n\n| Function | What it does |\n|---|---|\n| `find_recipes` | Searches the recipes already in your Paprika - name, ingredients, method, notes and source - and falls back to near misses when nothing matches exactly |\n| `get_recipe` | Reads one recipe in full, by uid |\n| `update_recipe` | Revises a recipe you already have. **Overwrites - there is no undo** |\n| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |\n| `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |\n| `get_groceries` | Reads your shopping list, grouped by aisle |\n| `add_groceries` | Adds items to the shopping list. Refuses anything already on it and says so |\n| `check_off_groceries` | Ticks items off as bought |\n| `attach_photo` | Puts a photograph you attach to the chat onto a recipe you already have. **Replaces the current picture - there is no undo** |\n| `find_equipment` | Looks through your kitchen equipment list by category or by words, including the wish list and things you no longer have |\n| `get_equipment` | Reads one piece of equipment in full |\n| `add_equipment` | Adds a knife, pan, appliance or utensil, with the photo you attach to the message |\n| `update_equipment` | Corrects or adds to an item - a note, a caution, the right size, a new photo, or marking it gone. **Every change keeps the version before it** |\n\nIt reads, adds and revises recipes, puts your own photographs on them, reads and adds to the shopping list, and keeps the kitchen equipment list. It does not delete anything, and it does not touch meal plans or the pantry.\n\nThe equipment list is not stored in Paprika, which has no place for it. It lives with the service, and every change to it keeps the version it replaced.\n\nItems added to the shopping list are filed into an aisle by **our guess**, because Paprika does not assign one itself. A wrong guess is easy to move in the app.\n\n## Settings\n\n**Service URL** arrives filled in. **Service Token** is the `SERVICE_TOKEN` from the deployment's environment, and is the only thing you have to type - re-importing the plugin creates a fresh copy with it empty, so it needs pasting again each time.\n\nLeave it running **server-side**, which is the default. That is what makes it work from a phone with nothing installed, and what keeps the token off your devices.\n\n`attach_photo`, `add_equipment` and `update_equipment` are the exceptions, and they cannot be otherwise. TypingMind hands a message's attachments to JavaScript functions only, so those three run in your browser and need the token there to upload a picture. Every other function still runs on the server.",
   "userSettings": [
     {
       "name": "serviceUrl",
@@ -469,6 +469,301 @@
             "uid": {
               "type": "string",
               "description": "The recipe's uid, exactly as find_recipes or get_recipe returned it. Never a name - names are not unique and this is how the right recipe is addressed."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "find_equipment",
+      "name": "find_equipment",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "d4025f93-013e-4e6d-9abe-b581f3558ced",
+        "url": "{serviceUrl}/v1/equipment/find",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"category\": \"{category}\",\n  \"query\": \"{query}\",\n  \"status\": \"{status}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "find_equipment",
+        "description": "Look through the kitchen equipment list - knives, pots and pans, appliances, boards, utensils - by category, by words, or both. Read-only.\n\nThe owned equipment is usually already in your instructions under \"Juergen's kitchen\". Call this when it is not there, when he asks about the wish list (status wanted) or things he has got rid of (status gone), and before add_equipment, to check the thing is not already on the list.\n\nEach item has notes (how he uses it, in his words), cautions (hard rules - never break one) and unconfirmed points (never state these as fact). Show photo_url as a markdown image when seeing it would help.\n\n⛔ An empty result means nothing is WRITTEN DOWN, not that the kitchen lacks it. Never tell him he does not own something. Ask.",
+        "parameters": {
+          "type": "object",
+          "required": [],
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "Only this category, or empty for all. One of: knives (every blade), cookware (pots, pans, woks, pressure cookers - anything on a burner), bakeware (sheet pans, baking dishes, tins), small-appliances (stand mixer, hand mixer, food processor, blender, toaster), large-appliances (stove, oven, microwave, fridge, dishwasher), coffee-tea (espresso machine, grinder, kettle), boards, utensils (spatulas, whisks, thermometers, graters), storage, other."
+            },
+            "query": {
+              "type": "string",
+              "description": "Words to look for in the name, brand, model, material, notes and cautions. Every word must appear. Empty lists the whole category."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "owned",
+                "wanted",
+                "gone",
+                "all"
+              ],
+              "description": "owned (the default) is what is in the kitchen now. wanted is the wish list. gone is what has left."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "get_equipment",
+      "name": "get_equipment",
+      "implementationType": "http",
+      "outputType": "respond_to_ai",
+      "httpAction": {
+        "id": "2f013ed7-3e67-4769-a0da-b8403eb3d55e",
+        "url": "{serviceUrl}/v1/equipment/get",
+        "name": "",
+        "method": "POST",
+        "hasBody": true,
+        "hasHeaders": true,
+        "requestBody": "{\n  \"id\": \"{id}\"\n}",
+        "requestHeaders": "{\n  \"Authorization\": \"Bearer {serviceToken}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "requestBodyFormat": "json"
+      },
+      "openaiSpec": {
+        "name": "get_equipment",
+        "description": "One piece of kitchen equipment in full, by id: every note, caution and unconfirmed point, and its photo link. Use it before correcting an item, so you remove and add against what is actually there, and when the kitchen list in your instructions is shown one line per item.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The item's id, exactly as the kitchen list or find_equipment gave it."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "add_equipment",
+      "name": "add_equipment",
+      "implementationType": "javascript",
+      "outputType": "respond_to_ai",
+      "code": "async function add_equipment(params, userSettings, resources) {\n  // Reading the attached photo, exactly as attach_photo does it. This has to\n  // be a JavaScript function because TypingMind hands a message's attachments\n  // to JavaScript functions and to nothing else.\n  const MAX_EDGE = 1600;\n\n  const asDataURL = (blob) =>\n    new Promise((resolve, reject) => {\n      const reader = new FileReader();\n      reader.onload = () => resolve(reader.result);\n      reader.onerror = reject;\n      reader.readAsDataURL(blob);\n    });\n\n  // Shrink in the browser: a phone photo is several megabytes, and drawing it\n  // through a canvas is also what turns an iPhone HEIC into a JPEG.\n  const shrink = async (blob) => {\n    try {\n      const bitmap = await createImageBitmap(blob);\n      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));\n      const width = Math.round(bitmap.width * scale);\n      const height = Math.round(bitmap.height * scale);\n      if (typeof OffscreenCanvas !== 'undefined') {\n        const canvas = new OffscreenCanvas(width, height);\n        canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n        return await asDataURL(await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 }));\n      }\n      const canvas = document.createElement('canvas');\n      canvas.width = width;\n      canvas.height = height;\n      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n      return canvas.toDataURL('image/jpeg', 0.85);\n    } catch (e) {\n      return null;\n    }\n  };\n\n  // Returns the encoded photo, \"\" when none is attached, or throws.\n  const attachedPhoto = async () => {\n    const images = (resources?.userMessage?.attachments || []).filter((a) =>\n      a.type?.startsWith('image/'),\n    );\n    if (!images.length) return '';\n    const chosen = images[images.length - 1];\n    const blob = await fetch(chosen.url).then((r) => r.blob());\n    return (await shrink(blob)) || (await asDataURL(blob));\n  };\n\n  const send = async (path, body) => {\n    let response;\n    try {\n      response = await fetch(userSettings.serviceUrl.replace(/\\/+$/, '') + path, {\n        method: 'POST',\n        headers: {\n          'Content-Type': 'application/json',\n          Authorization: 'Bearer ' + userSettings.serviceToken,\n        },\n        body: JSON.stringify(body),\n      });\n    } catch (e) {\n      return { ok: false, message: 'The service could not be reached, so nothing was changed: ' + e.message };\n    }\n    if (!response.ok) {\n      return {\n        ok: false,\n        message: 'The service refused it (HTTP ' + response.status + '), so nothing was changed: ' + (await response.text()),\n      };\n    }\n    return await response.json();\n  };\n  const { use_attached_photo, ...item } = params;\n  let image_base64 = '';\n  let photoNote = '';\n  if (use_attached_photo !== false) {\n    try {\n      image_base64 = await attachedPhoto();\n    } catch (e) {\n      photoNote = ' The attached photo could not be read in the browser (' + e.message + '), so it was added without one.';\n    }\n  }\n\n  const result = await send('/v1/equipment/add', { ...item, image_base64 });\n  if (photoNote && result.message) result.message += photoNote;\n  return result;\n}\n",
+      "openaiSpec": {
+        "name": "add_equipment",
+        "description": "Add one piece of equipment to the kitchen list - a knife, a pan, the coffee machine, a whisk. It becomes part of what you know about the kitchen from the next new conversation.\n\n**If he attached a photo, call this straight away with what you know**, and fill in the rest afterwards with update_equipment. The photo can only be read from the message it was attached to, so asking five questions first loses it.\n\nYou do NOT need to be able to see the photo; the plugin reads it and uploads it itself.\n\n⛔ **Write only what he said or confirmed.** If you can see the photo and recognise a brand or model, say what you think it is and ask - do not put it in brand or model until he agrees. Anything he is unsure of goes in unconfirmed.\n\nWrite notes in his words, not yours. One thing per call; for several things, call it once for each and set use_attached_photo false unless the photo is of that one thing.\n\nA name already on the list is refused - use update_equipment on that item instead.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "name",
+            "category"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "What he calls it, specific enough to tell it apart: 'Shun Classic Paring Knife', 'Breville Barista Express', 'Rolled steel wok, large'."
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "knives",
+                "cookware",
+                "bakeware",
+                "small-appliances",
+                "large-appliances",
+                "coffee-tea",
+                "boards",
+                "utensils",
+                "storage",
+                "other"
+              ],
+              "description": "knives (every blade), cookware (pots, pans, woks, pressure cookers - anything on a burner), bakeware (sheet pans, baking dishes, tins), small-appliances (stand mixer, hand mixer, food processor, blender, toaster), large-appliances (stove, oven, microwave, fridge, dishwasher), coffee-tea (espresso machine, grinder, kettle), boards, utensils (spatulas, whisks, thermometers, graters), storage, other."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "owned",
+                "wanted"
+              ],
+              "description": "owned, unless he says it is something he wants and does not have yet."
+            },
+            "brand": {
+              "type": "string",
+              "description": "Only if he said it or confirmed it. Blank beats a guess."
+            },
+            "model": {
+              "type": "string",
+              "description": "Only if he said it or confirmed it."
+            },
+            "size": {
+              "type": "string",
+              "description": "With its unit: '6.5 inch', '5 quarts', '280 mm'."
+            },
+            "material": {
+              "type": "string",
+              "description": "Stainless steel, carbon steel, cast iron, enamelled cast iron, rubber..."
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "How he uses it and what he thinks of it, in his words. One entry per note."
+            },
+            "cautions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Anything that must never be done with it: 'no acidic food', 'never in the dishwasher'."
+            },
+            "unconfirmed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Anything he was unsure of, or that you read off the photo and he has not confirmed."
+            },
+            "use_attached_photo": {
+              "type": "boolean",
+              "description": "Leave true when the attached photo shows this item. Set false when it shows several things or something else."
+            }
+          }
+        }
+      }
+    },
+    {
+      "id": "update_equipment",
+      "name": "update_equipment",
+      "implementationType": "javascript",
+      "outputType": "respond_to_ai",
+      "code": "async function update_equipment(params, userSettings, resources) {\n  // Reading the attached photo, exactly as attach_photo does it. This has to\n  // be a JavaScript function because TypingMind hands a message's attachments\n  // to JavaScript functions and to nothing else.\n  const MAX_EDGE = 1600;\n\n  const asDataURL = (blob) =>\n    new Promise((resolve, reject) => {\n      const reader = new FileReader();\n      reader.onload = () => resolve(reader.result);\n      reader.onerror = reject;\n      reader.readAsDataURL(blob);\n    });\n\n  // Shrink in the browser: a phone photo is several megabytes, and drawing it\n  // through a canvas is also what turns an iPhone HEIC into a JPEG.\n  const shrink = async (blob) => {\n    try {\n      const bitmap = await createImageBitmap(blob);\n      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));\n      const width = Math.round(bitmap.width * scale);\n      const height = Math.round(bitmap.height * scale);\n      if (typeof OffscreenCanvas !== 'undefined') {\n        const canvas = new OffscreenCanvas(width, height);\n        canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n        return await asDataURL(await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.85 }));\n      }\n      const canvas = document.createElement('canvas');\n      canvas.width = width;\n      canvas.height = height;\n      canvas.getContext('2d').drawImage(bitmap, 0, 0, width, height);\n      return canvas.toDataURL('image/jpeg', 0.85);\n    } catch (e) {\n      return null;\n    }\n  };\n\n  // Returns the encoded photo, \"\" when none is attached, or throws.\n  const attachedPhoto = async () => {\n    const images = (resources?.userMessage?.attachments || []).filter((a) =>\n      a.type?.startsWith('image/'),\n    );\n    if (!images.length) return '';\n    const chosen = images[images.length - 1];\n    const blob = await fetch(chosen.url).then((r) => r.blob());\n    return (await shrink(blob)) || (await asDataURL(blob));\n  };\n\n  const send = async (path, body) => {\n    let response;\n    try {\n      response = await fetch(userSettings.serviceUrl.replace(/\\/+$/, '') + path, {\n        method: 'POST',\n        headers: {\n          'Content-Type': 'application/json',\n          Authorization: 'Bearer ' + userSettings.serviceToken,\n        },\n        body: JSON.stringify(body),\n      });\n    } catch (e) {\n      return { ok: false, message: 'The service could not be reached, so nothing was changed: ' + e.message };\n    }\n    if (!response.ok) {\n      return {\n        ok: false,\n        message: 'The service refused it (HTTP ' + response.status + '), so nothing was changed: ' + (await response.text()),\n      };\n    }\n    return await response.json();\n  };\n  const { use_attached_photo, ...changes } = params;\n  let image_base64 = '';\n  if (use_attached_photo === true) {\n    try {\n      image_base64 = await attachedPhoto();\n    } catch (e) {\n      return { ok: false, message: 'The attached photo could not be read in the browser, so nothing was changed: ' + e.message };\n    }\n    if (!image_base64) {\n      return {\n        ok: false,\n        message:\n          'No photo is attached to this message, so nothing was changed. Ask him to attach it to the message that asks for it.',\n      };\n    }\n  }\n  return await send('/v1/equipment/update', { ...changes, image_base64 });\n}\n",
+      "openaiSpec": {
+        "name": "update_equipment",
+        "description": "Correct or add to a piece of equipment already on the kitchen list. Use it whenever he tells you something you had wrong, or something you did not know - 'the wok handle gets hot', 'that pan is 10 inches, not 8', 'never put this in the dishwasher', 'we got rid of the old nonstick'.\n\nThree kinds of change, and they behave differently:\n- **Adding** (add_notes, add_cautions, add_unconfirmed) keeps everything already there.\n- **Replacing** (name, category, status, brand, model, size, material) swaps the value. When he settles something that was unconfirmed, also take it out with remove_unconfirmed.\n- **Removing** (remove_notes, remove_cautions, remove_unconfirmed) takes out an entry he says is wrong. Give a few of its words; they must match exactly one entry, or nothing at all changes.\n\n⛔ **Never rewrite his notes to read better.** Add what he said in his words. Read the item first with get_equipment if you are removing anything, so you match what is really there.\n\nWhen something leaves the kitchen, set status to gone. Nothing is ever deleted. Every change keeps the version before it, so a wrong one can be undone.\n\nTo replace the photo, he attaches the new one to the message asking for it and you set use_attached_photo true. Say what changed, using the changed list that comes back.",
+        "parameters": {
+          "type": "object",
+          "required": [
+            "id"
+          ],
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "The item's id, exactly as the kitchen list, find_equipment or get_equipment gave it."
+            },
+            "name": {
+              "type": "string",
+              "description": "A new name. Leave out to keep it."
+            },
+            "category": {
+              "type": "string",
+              "enum": [
+                "knives",
+                "cookware",
+                "bakeware",
+                "small-appliances",
+                "large-appliances",
+                "coffee-tea",
+                "boards",
+                "utensils",
+                "storage",
+                "other"
+              ],
+              "description": "Move it to another category. Leave out to keep it."
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "owned",
+                "wanted",
+                "gone"
+              ],
+              "description": "gone when it has left the kitchen; owned when a wished-for thing has been bought or something is back."
+            },
+            "brand": {
+              "type": "string",
+              "description": "REPLACES the brand. Leave out to keep it."
+            },
+            "model": {
+              "type": "string",
+              "description": "REPLACES the model. Leave out to keep it."
+            },
+            "size": {
+              "type": "string",
+              "description": "REPLACES the size, with its unit. Leave out to keep it."
+            },
+            "material": {
+              "type": "string",
+              "description": "REPLACES the material. Leave out to keep it."
+            },
+            "add_notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Notes to ADD, in his words."
+            },
+            "add_cautions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Hard rules to ADD."
+            },
+            "add_unconfirmed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Things he said but is unsure of."
+            },
+            "remove_notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "A few words from each note to take OUT, enough to match exactly one."
+            },
+            "remove_cautions": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "A few words from each caution to take OUT."
+            },
+            "remove_unconfirmed": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "A few words from each unconfirmed point to take out, usually because he has now settled it."
+            },
+            "clear": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "model",
+                  "size",
+                  "material",
+                  "photo_url"
+                ]
+              },
+              "description": "Fields to blank because what is there is wrong and the right value is not known."
+            },
+            "use_attached_photo": {
+              "type": "boolean",
+              "description": "true only when he attached a new photo of this item to this message and wants it to replace the old one."
             }
           }
         }
