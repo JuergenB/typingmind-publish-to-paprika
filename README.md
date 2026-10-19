@@ -1,6 +1,6 @@
 # Paprika Recipes — a TypingMind plugin
 
-**Version 11.** The plugin's title carries the version too, so you can see it in
+**Version 12.** The plugin's title carries the version too, so you can see it in
 the plugin list without opening anything. TypingMind shows no version of its own
 and freezes this page at install time, so whatever number these name is the
 version you actually have installed.
@@ -18,7 +18,7 @@ with nothing installed.
 |---|---|
 | `find_recipes` | Searches the recipes you already have - across names, ingredients, directions, notes and source - and filters by rating, favourite, category or source. A search of several words that matches nothing exactly comes back with near misses rather than nothing |
 | `get_recipe` | Reads one recipe in full, by uid |
-| `update_recipe` | Revises a recipe you already have. **Overwrites — there is no undo** |
+| `update_recipe` | Revises a recipe you already have. **Every revision keeps the version it replaces**, so a bad one can be put back |
 | `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |
 | `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |
 | `get_groceries` | Reads your shopping list, grouped by aisle, which is the order you walk a shop in |
