@@ -1,6 +1,6 @@
 # Paprika Recipes — a TypingMind plugin
 
-**Version 12.** The plugin's title carries the version too, so you can see it in
+**Version 13.** The plugin's title carries the version too, so you can see it in
 the plugin list without opening anything. TypingMind shows no version of its own
 and freezes this page at install time, so whatever number these name is the
 version you actually have installed.
@@ -33,6 +33,10 @@ with nothing installed.
 It reads, adds and revises recipes, puts your own photographs on them, reads
 and adds to the shopping list, and keeps the kitchen equipment list.
 It does not delete anything, and it does not touch meal plans or the pantry.
+
+Recipes are filed into your **existing category folders only**. A name that is
+not one of your folders is left off and the Chef is told so; the service never
+creates a new folder, so the tree you keep in Paprika stays the way you left it.
 
 Items added to the shopping list are filed into an aisle by **the plugin's
 guess**, because Paprika does not assign one itself. Something it cannot
