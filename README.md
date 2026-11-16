@@ -1,6 +1,6 @@
 # Paprika Recipes — a TypingMind plugin
 
-**Version 13.** The plugin's title carries the version too, so you can see it in
+**Version 14.** The plugin's title carries the version too, so you can see it in
 the plugin list without opening anything. TypingMind shows no version of its own
 and freezes this page at install time, so whatever number these name is the
 version you actually have installed.
@@ -19,12 +19,12 @@ with nothing installed.
 | `find_recipes` | Searches the recipes you already have - across names, ingredients, directions, notes and source - and filters by rating, favourite, category or source. A search of several words that matches nothing exactly comes back with near misses rather than nothing |
 | `get_recipe` | Reads one recipe in full, by uid |
 | `update_recipe` | Revises a recipe you already have. **Every revision keeps the version it replaces**, so a bad one can be put back |
-| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one *before* the recipe is published |
+| `preview_recipe_images` | Draws several food-photography options and returns their URLs, so you see them and pick one. If the first image provider fails it retries, then tries a backup, and when nothing works it says which provider failed and why |
 | `publish_recipe` | Writes a new recipe into Paprika, with the photo you chose, and tells your devices to sync immediately |
 | `get_groceries` | Reads your shopping list, grouped by aisle, which is the order you walk a shop in |
 | `add_groceries` | Adds items to the shopping list. Anything already waiting to be bought is refused and named, so the list does not fill with near-duplicates |
 | `check_off_groceries` | Ticks items off as bought |
-| `attach_photo` | Puts a photograph you attach to the chat onto a recipe you already have. **Replaces the picture it has now - there is no way back to the old one** |
+| `attach_photo` | Puts a picture onto a recipe you already have: a photograph you attach to the chat, or one you picked from `preview_recipe_images`. Only the picture changes. **Replaces the picture it has now - there is no way back to the old one** |
 | `find_equipment` | Looks through your kitchen equipment list - knives, pans, appliances, boards, utensils - by category or by words, including the wish list and things you no longer have |
 | `get_equipment` | Reads one piece of equipment in full: notes, cautions, anything not yet confirmed, and its photo |
 | `add_equipment` | Adds a piece of equipment, with the photo you attach to the message |
